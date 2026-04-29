@@ -79,7 +79,31 @@
 - Random Undersampling 雖然召回率高，但犧牲過多資訊，導致整體表現下滑
 - 最終選擇 `class_weight='balanced'` 作為提交方案
 
-### 2.4 特徵分析
+### 2.5 Kaggle 評分結果
+
+#### 2.5.1 原始版本 (未處理類別不平衡)
+
+| Submission | Private Score | Public Score | 說明 |
+|------------|---------------|--------------|------|
+| 第一次 (v1) | 0.67073 | 0.67498 | 基礎 Random Forest (n_estimators=100) |
+| 第二次 (v2) | 0.64071 | 0.65635 | GridSearchCV 調參後 Random Forest |
+| 第三次 (v3) | 0.70568 | 0.70448 | class_weight='balanced' |
+| 第四次 (v4) | 0.58913 | 0.58772 | 特徵工程 + 集成模型 |
+
+#### 2.5.2 平衡版本 (class_weight='balanced')
+
+| Submission | Private Score | Public Score | 說明 |
+|------------|---------------|--------------|------|
+| 第一次 (v1_balanced) | 0.65628 | 0.66703 | 基礎 RF + class_weight |
+| 第二次 (v2_balanced) | 0.67450 | 0.67875 | GridSearchCV + class_weight |
+| 第三次 (v3_balanced) | 0.70568 | 0.70448 | RF + class_weight='balanced' |
+| 第四次 (v4_balanced) | 0.62636 | 0.62442 | 集成模型 + class_weight |
+
+#### 2.5.3 評分分析
+
+- **最佳成績**: 第三次提交 (v3/v3_balanced) - Private: 0.70568, Public: 0.70448
+- **類別不平衡處理效果**: 平衡版本在第二次提交表現較好 (0.67450 vs 0.64071)，顯示類別權重調整對提升預測能力有幫助
+- **特徵工程影響**: 第四次提交分數下降，可能是過擬合或特徵工程方法需要改進
 
 #### 2.4.1 描述統計
 ```
