@@ -17,8 +17,10 @@
 - 預測分佈：0=1,571, 1=57,350
 
 ## Submission 3: 類別權重調整 Random Forest
-- 修改內容：使用 class_weight='balanced' 處理類別不平衡
-- 驗證集準確率：0.9463
-- F1-Score：0.9717
-- AUC-ROC：0.8542
-- 預測分佈：0=2,815, 1=56,106
+
+## Submission 4: 特徵工程 + 集成模型
+- 修改內容：加入特徵工程 (ID出現次數) + 集成 Random Forest、Gradient Boosting、Logistic Regression
+- 驗證集準確率：0.9419
+- F1-Score：0.9700
+- AUC-ROC：0.7580
+- 預測分佈：0=829, 1=58,092
