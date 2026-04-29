@@ -61,6 +61,33 @@
 
 ---
 
+## Submission 5：資料不平衡處理方法比較
+- **設計**：比較多種資料不平衡處理方法（SMOTE、Random Undersampling、SMOTETomek、class_weight='balanced'）
+- **選擇依據**：
+  - 資料極度不平衡（1:0 約 16:1），需針對性處理
+  - 測試不同過採樣/欠採樣方法的效果差異
+- **測試方法**：
+  - SMOTE：合成少數類別樣本
+  - Random Undersampling：隨機減少多數類別樣本
+  - SMOTETomek：結合過採樣與欠採樣
+  - class_weight='balanced'：調整模型權重
+- **結果**：
+  - class_weight='balanced' 表現最佳，F1=0.9722，AUC=0.8628
+  - 少數類別召回率從 26.65% 提升至 39.84%
+
+---
+
+## Balanced 版本：所有模型套用 class_weight='balanced'
+- **設計**：將原本 v1~v4 四個模型全部加上 class_weight='balanced' 參數
+- **目的**：在保持各模型特性的同時，改善資料不平衡問題
+- **結果**：
+  - v1 (balanced)：準確率 94.78%，F1=0.9727，AUC=0.8448
+  - v2 (balanced)：準確率 94.64%，F1=0.9719，AUC=0.8606
+  - v3 (balanced)：準確率 94.63%，F1=0.9717，AUC=0.8542
+  - v4 (balanced)：準確率 94.23%，F1=0.9703，AUC=0.7785
+
+---
+
 ## 綜合建議
 - **最佳模型**：Submission 2（參數調優 RF）
 - **參數調整重點**：

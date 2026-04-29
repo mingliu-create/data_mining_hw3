@@ -31,7 +31,8 @@
 - AUC-ROC：0.7580
 - 預測分佈：0=829, 1=58,092
 
-## Submission 5: 資料不平衡處理 (class_weight='balanced')
+## Submission 5: 資料不平衡處理 (Random Forest + class_weight='balanced')
+- **模型**：Random Forest
 - 修改內容：使用 class_weight='balanced' 處理類別不平衡問題
 - 驗證集準確率：0.9472
 - F1-Score：0.9722
