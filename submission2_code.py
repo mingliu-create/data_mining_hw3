@@ -1,7 +1,7 @@
 """
 Submission 2: 參數調優後的 Random Forest
 -----------------------------
-修改內容：使用 GridSearchCV 進行參數調優
+修改內容：使用 GridSearchCV 進行參數調優，並以 F1-Score 作為搜尋目標
 """
 import pandas as pd
 from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
@@ -30,7 +30,7 @@ param_grid = {
 }
 rf = RandomForestClassifier(random_state=42, n_jobs=-1)
 cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
-gs = GridSearchCV(rf, param_grid, cv=cv, scoring='accuracy', n_jobs=-1, verbose=1)
+gs = GridSearchCV(rf, param_grid, cv=cv, scoring='f1', n_jobs=-1, verbose=1)
 gs.fit(X_train, y_train)
 
 print(f"最佳參數: {gs.best_params_}")

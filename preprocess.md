@@ -86,8 +86,8 @@
 | Submission | Private Score | Public Score | 說明 |
 |------------|---------------|--------------|------|
 | 第一次 (v1) | 0.67073 | 0.67498 | 基礎 Random Forest (n_estimators=100) |
-| 第二次 (v2) | 0.64071 | 0.65635 | GridSearchCV 調參後 Random Forest |
-| 第三次 (v3) | 0.70568 | 0.70448 | class_weight='balanced' |
+| 第二次 (v2) | 待重新提交 | 待重新提交 | GridSearchCV 調參後 Random Forest，scoring='f1' |
+| 第三次 (v3) | 待重新提交 | 待重新提交 | Random Forest + threshold tuning |
 | 第四次 (v4) | 0.58913 | 0.58772 | 特徵工程 + 集成模型 |
 
 #### 2.5.2 平衡版本 (class_weight='balanced')
@@ -95,13 +95,13 @@
 | Submission | Private Score | Public Score | 說明 |
 |------------|---------------|--------------|------|
 | 第一次 (v1_balanced) | 0.65628 | 0.66703 | 基礎 RF + class_weight |
-| 第二次 (v2_balanced) | 0.67450 | 0.67875 | GridSearchCV + class_weight |
-| 第三次 (v3_balanced) | 0.70568 | 0.70448 | RF + class_weight='balanced' |
+| 第二次 (v2_balanced) | 待重新提交 | 待重新提交 | GridSearchCV + class_weight，scoring='f1' |
+| 第三次 (v3_balanced) | 待重新提交 | 待重新提交 | RF + class_weight + threshold tuning |
 | 第四次 (v4_balanced) | 0.62636 | 0.62442 | 集成模型 + class_weight |
 
 #### 2.5.3 評分分析
 
-- **最佳成績**: 第三次提交 (v3/v3_balanced) - Private: 0.70568, Public: 0.70448
+- **最新狀態**: v2/v3 與 balanced v2/v3 已重新訓練並更新 submission CSV，Kaggle 分數待重新提交確認
 - **類別不平衡處理效果**: 平衡版本在第二次提交表現較好 (0.67450 vs 0.64071)，顯示類別權重調整對提升預測能力有幫助
 - **特徵工程影響**: 第四次提交分數下降，可能是過擬合或特徵工程方法需要改進
 
@@ -300,10 +300,10 @@ param_grid = {
 
 | 項目 | 內容 |
 |------|------|
-| **修改內容** | 使用網格搜尋 (GridSearchCV) 進行參數調優 |
-| **修改原因** | 透過系統化搜尋找到最佳參數組合，提升模型表現 |
+| **修改內容** | 使用網格搜尋 (GridSearchCV) 進行參數調優，scoring 改為 F1-Score |
+| **修改原因** | 資料不平衡下 accuracy 容易偏向多數類別，改用 F1-Score 作為搜尋目標 |
 | **模型參數** | n_estimators=200, max_depth=25, min_samples_split=5, min_samples_leaf=1 |
-| **交叉驗證分數** | 95.03% |
+| **交叉驗證 F1-Score** | 0.9741 |
 | **驗證集準確率** | 94.87% |
 | **F1-Score** | 0.9733 |
 | **AUC-ROC** | 0.8610 |
@@ -315,23 +315,24 @@ param_grid = {
 - AUC-ROC 大幅提升: 0.8390 → 0.8610 (+2.2%)
 - 這表示模型對正負樣本的區分能力增強
 
-### 7.3 Submission 3: 類別權重調整
+### 7.3 Submission 3: Random Forest + threshold tuning
 
 | 項目 | 內容 |
 |------|------|
-| **修改內容** | 使用 class_weight='balanced' 處理類別不平衡問題 |
-| **修改原因** | 資料集正樣本佔 94%，使用類別權重讓模型更關注少數類別 (ACTION=0) |
-| **模型參數** | n_estimators=200, max_depth=20, class_weight='balanced' |
-| **驗證集準確率** | 94.63% |
-| **F1-Score** | 0.9717 |
-| **AUC-ROC** | 0.8542 |
-| **預測分佈** | 0=2,815, 1=56,106 |
+| **修改內容** | 使用 Random Forest 預測機率，並在驗證集上調整 threshold |
+| **修改原因** | 預設 threshold=0.5 不一定能在不平衡資料上取得最佳 F1-Score |
+| **模型參數** | n_estimators=200, max_depth=25, min_samples_split=5, min_samples_leaf=1 |
+| **最佳 threshold** | 0.41 |
+| **驗證集準確率** | 94.95% |
+| **F1-Score** | 0.9738 |
+| **AUC-ROC** | 0.8610 |
+| **預測分佈** | 0=1,088, 1=57,833 |
 | **Kaggle Score** | 待填寫 |
 
 **變化分析**:
-- 預測為 0 的數量增加 (2,150 → 2,815)
-- 這是因為模型更傾向於預測少數類別
-- AUC-ROC 提升至 0.8542，表示整體區分能力提升
+- threshold 從預設 0.5 調整為 0.41
+- F1-Score 從 v2 的 0.9733 小幅提升至 0.9738
+- 仍維持 Random Forest，未加入 class_weight，方便與 balanced 版本比較
 
 ### 7.4 Submission 4: 特徵工程 + 集成模型
 
@@ -358,8 +359,8 @@ param_grid = {
 | Version | 模型 | 驗證 Accuracy | F1-Score | AUC-ROC | 預測為0的數量 |
 |---------|------|--------------|----------|---------|-------------|
 | v1 | Baseline RF | 94.72% | 0.9723 | 0.8390 | 2,150 |
-| v2 | Grid Search RF | 94.87% | 0.9733 | 0.8610 | 1,571 |
-| v3 | Balanced RF | 94.63% | 0.9717 | 0.8542 | 2,815 |
+| v2 | Grid Search RF (F1 scoring) | 94.87% | 0.9733 | 0.8610 | 1,571 |
+| v3 | RF + threshold tuning | 94.95% | 0.9738 | 0.8610 | 1,088 |
 | v4 | Ensemble + FE | 94.19% | 0.9700 | 0.7580 | 829 |
 
 ---
@@ -367,10 +368,10 @@ param_grid = {
 ## 9. 建議
 
 ### 9.1 最佳模型選擇
-根據驗證集結果，**Submission 2 (參數調優後的 Random Forest)** 表現最佳：
-- 最高準確率: 94.87%
-- 最高 AUC-ROC: 0.8610
-- 預測分佈也較為合理
+根據最新驗證集結果，**Submission 3 (Random Forest + threshold tuning)** 在原始版本中表現最佳：
+- 最高驗證 F1-Score: 0.9738
+- 驗證準確率: 94.95%
+- AUC-ROC: 0.8610
 
 ### 9.2 後續改進建議
 1. **嘗試 XGBoost/LightGBM**: 通常在這類資料上表現更好

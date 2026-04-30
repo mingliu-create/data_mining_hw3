@@ -263,8 +263,8 @@ test_probabilities = rf_final.predict_proba(test_X)[:, 1]
 
 # 生成提交檔案
 submission = pd.DataFrame({
-    'id': test_df['id'] if 'id' in test_df.columns else range(len(test_df)),
-    'ACTION': test_predictions
+    'Id': test_df['id'] if 'id' in test_df.columns else range(len(test_df)),
+    'Action': test_predictions
 })
 
 submission.to_csv('submission_imbalanced.csv', index=False)
@@ -273,8 +273,8 @@ print(f"預測分佈: {pd.Series(test_predictions).value_counts().to_dict()}")
 
 # 同時生成機率版本 (可用於 threshold tuning)
 submission_prob = pd.DataFrame({
-    'id': test_df['id'] if 'id' in test_df.columns else range(len(test_df)),
-    'ACTION': test_probabilities
+    'Id': test_df['id'] if 'id' in test_df.columns else range(len(test_df)),
+    'Action': test_probabilities
 })
 submission_prob.to_csv('submission_imbalanced_prob.csv', index=False)
 print(f"機率版本已生成: submission_imbalanced_prob.csv")

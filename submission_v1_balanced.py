@@ -22,7 +22,7 @@ X_train, X_val, y_train, y_val = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
 )
 
-# 建立模型 (加上 class_weight)
+# 建立模型 
 rf = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1, class_weight='balanced')
 rf.fit(X_train, y_train)
 
@@ -39,5 +39,5 @@ print(f"AUC-ROC: {auc:.4f}")
 print(f"預測分佈: 0={sum(rf.predict(X_test)==0)}, 1={sum(rf.predict(X_test)==1)}")
 
 # 生成預測
-submission = pd.DataFrame({'id': test_ids, 'ACTION': rf.predict(X_test)})
+submission = pd.DataFrame({'Id': test_ids, 'Action': rf.predict(X_test)})
 submission.to_csv('submission_v1_balanced.csv', index=False)

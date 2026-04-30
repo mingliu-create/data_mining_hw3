@@ -2,7 +2,7 @@
 
 ## 摘要
 
-本報告記錄了資料探勘課程第三次作業的完整流程，從資料前處理到模型提交的全過程。最終在 Kaggle 平台上取得 **Private Score: 0.70568, Public Score: 0.70448** 的成績。
+本報告記錄了資料探勘課程第三次作業的完整流程，從資料前處理到模型提交的全過程。更新後所有 submission CSV 欄位皆符合 sample submission 的 `Id, Action` 格式；最終在 Kaggle 平台上以 **v2_balanced** 取得最佳成績：**Private Score: 0.67450, Public Score: 0.67875**。
 
 ---
 
@@ -90,7 +90,7 @@
 RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
 ```
 
-#### 2.2 調優後參數 (v2)
+#### 2.2 調優後參數 (v2, GridSearchCV scoring='f1')
 ```python
 RandomForestClassifier(
     n_estimators=200,
@@ -102,35 +102,40 @@ RandomForestClassifier(
 )
 ```
 
-#### 2.3 類別權重參數 (v3)
+#### 2.3 Threshold tuning 參數 (v3)
 ```python
 RandomForestClassifier(
-    n_estimators=100,
+    n_estimators=200,
+    max_depth=25,
+    min_samples_split=5,
+    min_samples_leaf=1,
     random_state=42,
-    n_jobs=-1,
-    class_weight='balanced'
+    n_jobs=-1
 )
+
+# 使用驗證集搜尋最佳 threshold
+best_threshold = 0.41
 ```
 
 #### 2.4 集成模型參數 (v4)
 ```python
 # Random Forest
-RandomForestClassifier(n_estimators=200, max_depth=20, ...)
+RandomForestClassifier(n_estimators=200, max_depth=20, min_samples_split=5, min_samples_leaf=1, random_state=42, n_jobs=-1)
 
 # Gradient Boosting
-GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, ...)
+GradientBoostingClassifier(n_estimators=150, max_depth=5, learning_rate=0.1, random_state=42)
 
 # Logistic Regression
-LogisticRegression(class_weight='balanced', ...)
+LogisticRegression(max_iter=1000, random_state=42, class_weight='balanced')
 ```
 
 ### 3. 網格搜尋參數空間 (GridSearchCV)
 
 ```python
 param_grid = {
-    'n_estimators': [100, 200],
-    'max_depth': [10, 20, 25],
-    'min_samples_split': [2, 5],
+    'n_estimators': [150, 200],
+    'max_depth': [15, 20, 25],
+    'min_samples_split': [3, 5],
     'min_samples_leaf': [1, 2]
 }
 ```
@@ -143,17 +148,32 @@ param_grid = {
 
 ### 1. 內部驗證集評估
 
+#### 1.1 原始版本
+
 | Submission | 驗證集準確率 | F1-Score | AUC-ROC |
 |------------|-------------|----------|---------|
 | v1 | 94.72% | 0.9723 | 0.8390 |
 | v2 | 94.87% | 0.9733 | 0.8610 |
-| v3 | 94.63% | 0.9717 | 0.8542 |
+| v3 | 94.95% | 0.9738 | 0.8610 |
 | v4 | 94.19% | 0.9700 | 0.7580 |
+
+**觀察**: 原始版本中，v3 透過 threshold tuning 取得最高的驗證集 Accuracy 與 F1-Score，v2 與 v3 的 AUC-ROC 相同，代表兩者機率排序能力接近。不過 v3 的 Kaggle 分數低於 v2，顯示 threshold tuning 可能只對驗證集有效；v4 加入特徵工程與集成模型後，驗證集指標反而下降，表示此資料集上複雜化模型不一定能提升泛化能力。
+
+#### 1.2 Balanced 版本
+
+| Submission | 驗證集準確率 | F1-Score | AUC-ROC | 說明 |
+|------------|-------------|----------|---------|------|
+| v1_balanced | 94.78% | 0.9727 | 0.8448 | 基礎 RF + class_weight |
+| v2_balanced | 94.64% | 0.9719 | 0.8606 | GridSearchCV + class_weight，scoring='f1' |
+| v3_balanced | **95.03%** | **0.9740** | **0.8628** | RF + class_weight + threshold tuning |
+| v4_balanced | 94.23% | 0.9703 | 0.7785 | 特徵工程 + 集成模型 + class_weight |
+
+**觀察**: balanced 版本中，v3_balanced 在驗證集 Accuracy、F1-Score 與 AUC-ROC 皆最高；但 Kaggle 分數最佳的是 v2_balanced，表示 threshold tuning 可能對驗證集過度調整，未能泛化到測試集。
 
 ### 2. Cross-Validation 結果
 
-- **v2 (GridSearchCV)**: 交叉驗證分數 = **95.03%**
-- **v2_balanced**: 交叉驗證分數 = **94.95%**
+- **v2 (GridSearchCV, scoring='f1')**: 交叉驗證 F1-Score = **0.9741**
+- **v2_balanced (GridSearchCV, scoring='f1')**: 交叉驗證 F1-Score = **0.9735**
 
 ### 3. Kaggle 評分結果
 
@@ -161,9 +181,9 @@ param_grid = {
 
 | Submission | 修改內容 | Private Score | Public Score |
 |------------|---------|---------------|--------------|
-| 第一次 (v1) | 基礎 Random Forest (n_estimators=100) | **0.67073** | **0.67498** |
-| 第二次 (v2) | GridSearchCV 調參 | 0.64071 | 0.65635 |
-| 第三次 (v3) | class_weight='balanced' | **0.70568** | **0.70448** |
+| 第一次 (v1) | 基礎 Random Forest (n_estimators=100) | 0.67073 | 0.67498 |
+| 第二次 (v2) | GridSearchCV 調參，scoring='f1' | 0.64071 | 0.65635 |
+| 第三次 (v3) | Random Forest + threshold tuning | 0.60626 | 0.61920 |
 | 第四次 (v4) | 特徵工程 + 集成模型 | 0.58913 | 0.58772 |
 
 #### 3.2 平衡版本 (class_weight='balanced')
@@ -171,8 +191,8 @@ param_grid = {
 | Submission | 修改內容 | Private Score | Public Score |
 |------------|---------|---------------|--------------|
 | 第一次 (v1_balanced) | 基礎 RF + class_weight | 0.65628 | 0.66703 |
-| 第二次 (v2_balanced) | GridSearchCV + class_weight | **0.67450** | **0.67875** |
-| 第三次 (v3_balanced) | RF + class_weight='balanced' | **0.70568** | **0.70448** |
+| 第二次 (v2_balanced) | GridSearchCV + class_weight，scoring='f1' | **0.67450** | **0.67875** |
+| 第三次 (v3_balanced) | RF + class_weight + threshold tuning | 0.65289 | 0.65785 |
 | 第四次 (v4_balanced) | 集成模型 + class_weight | 0.62636 | 0.62442 |
 
 ---
@@ -187,16 +207,17 @@ param_grid = {
 - **Kaggle Score**: Private 0.67073 / Public 0.67498
 
 #### Submission 2 (v2)
-- **修改內容**: 使用 GridSearchCV 進行參數調優
+- **修改內容**: 使用 GridSearchCV 進行參數調優，scoring 改為 F1-Score
 - **模型參數**: `n_estimators=200, max_depth=25, min_samples_split=5, min_samples_leaf=1`
+- **驗證結果**: Accuracy 0.9487 / F1 0.9733 / AUC 0.8610
 - **Kaggle Score**: Private 0.64071 / Public 0.65635
-- **變化**: 分數下降 (-0.03002 / -0.01863)
 
 #### Submission 3 (v3)
-- **修改內容**: 使用 `class_weight='balanced'` 處理類別不平衡
-- **模型參數**: `n_estimators=100, class_weight='balanced'`
-- **Kaggle Score**: Private **0.70568** / Public **0.70448**
-- **變化**: 分數大幅提升 (+0.06497 / +0.04813)
+- **修改內容**: 使用 Random Forest 預測機率，並在驗證集上進行 threshold tuning
+- **模型參數**: `n_estimators=200, max_depth=25, min_samples_split=5, min_samples_leaf=1`
+- **最佳 threshold**: 0.41
+- **驗證結果**: Accuracy 0.9495 / F1 0.9738 / AUC 0.8610
+- **Kaggle Score**: Private 0.60626 / Public 0.61920
 
 #### Submission 4 (v4)
 - **修改內容**: 加入特徵工程 (ID出現次數) + 集成 Random Forest、Gradient Boosting、Logistic Regression
@@ -208,22 +229,22 @@ param_grid = {
 | Submission | 修改原因 | 結果 |
 |------------|---------|------|
 | v1 | 建立 baseline | 基準分數 0.67 |
-| v2 | 嘗試透過參數調優提升表現 | 分數下降，可能過擬合 |
-| v3 | 處理類別不平衡問題 | **最佳成績** 0.70568 |
+| v2 | 以 F1-Score 進行 RF 參數調優 | Private 0.64071 / Public 0.65635 |
+| v3 | 調整預測 threshold | 驗證 F1 提升，但 Kaggle 降至 Private 0.60626 / Public 0.61920 |
 | v4 | 嘗試特徵工程與集成學習 | 分數大幅下降，方法不適合 |
 
 ### 3. Kaggle Score 變化分析
 
-#### 3.1 為什麼 v2 分數下降？
-- **可能原因 1**: 驗證集分數高但測試集分數低，表示模型過擬合於驗證集
-- **可能原因 2**: 較深的決策樹 (`max_depth=25`) 在測試集上泛化能力較差
-- **可能原因 3**: 類別不平衡問題未處理，導致測試集預測偏差
+#### 3.1 v2 改用 F1-Score 的原因
+- **原因 1**: 資料不平衡下 accuracy 容易偏向多數類別，F1-Score 更能反映分類品質
+- **原因 2**: 最佳參數與原本一致，但交叉驗證指標改為 F1=0.9741，評估目標更符合不平衡資料
+- **Kaggle 結果**: 原始 v2 分數為 Private 0.64071 / Public 0.65635；加入 `class_weight='balanced'` 的 v2_balanced 提升至 Private 0.67450 / Public 0.67875，顯示類別權重比單純調整 scoring 更有效
 
-#### 3.2 為什麼 v3 分數大幅提升？
-- **關鍵因素**: `class_weight='balanced'` 有效解決類別不平衡問題
-- **少數類別召回率提升**: 26.65% → 39.84%
-- **AUC-ROC 提升**: 0.8390 → 0.8542
-- **結論**: 處理類別不平衡對於此資料集至關重要
+#### 3.2 v3 threshold tuning 的效果
+- **關鍵因素**: 將預設 threshold=0.5 調整為 0.41
+- **F1-Score 提升**: v2 的 0.9733 → v3 的 0.9738
+- **Kaggle 結果**: 原始 v3 下降至 Private 0.60626 / Public 0.61920；v3_balanced 也低於 v2_balanced，為 Private 0.65289 / Public 0.65785
+- **結論**: threshold tuning 雖可提升驗證集 F1-Score，但未能改善 Kaggle 分數，推測 threshold 對驗證集過度調整，泛化效果不佳
 
 #### 3.3 為什麼 v4 分數大幅下降？
 - **可能原因 1**: 特徵工程 (ID出現次數) 可能引入雜訊
@@ -235,11 +256,12 @@ param_grid = {
 
 | 項目 | 數值 |
 |------|------|
-| **最佳 Submission** | v3 / v3_balanced |
+| **最佳 Kaggle Submission** | v2_balanced |
 | **模型** | Random Forest |
-| **關鍵參數** | `class_weight='balanced'` |
-| **Private Score** | **0.70568** |
-| **Public Score** | **0.70448** |
+| **關鍵方法** | `class_weight='balanced'` + GridSearchCV (`scoring='f1'`) |
+| **最佳參數** | n_estimators=200, max_depth=25, min_samples_split=3, min_samples_leaf=1 |
+| **Private Score** | **0.67450** |
+| **Public Score** | **0.67875** |
 
 ---
 
@@ -248,8 +270,8 @@ param_grid = {
 ### 關鍵發現
 
 1. **類別不平衡是關鍵問題**: 本資料集存在 16:1 的類別不平衡，直接影響模型在測試集上的表現
-2. **簡單模型表現更好**: 預設參數的 Random Forest + class_weight 比複雜的集成模型表現更好
-3. **驗證集分數不可靠**: 驗證集上的高分不代表測試集上也會高分，需要使用交叉驗證和多種評估指標
+2. **class_weight 比 threshold tuning 更有效**: v2_balanced 是最佳 Kaggle 結果，而 threshold tuning 雖提升驗證 F1，Kaggle 分數反而下降
+3. **驗證集分數不可靠**: 驗證集上的高分不代表測試集上也會高分，需要搭配 Kaggle 分數與交叉驗證綜合判斷
 
 ### 未來改進方向
 

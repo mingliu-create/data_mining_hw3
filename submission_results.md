@@ -1,5 +1,7 @@
 # 三次 Submission 結果紀錄
 
+> 所有 submission CSV 欄位已統一為 Kaggle sample submission 要求的 `Id, Action`。
+
 ## Submission 1: 基礎 Random Forest
 - 修改內容：使用預設參數的 Random Forest 作為 baseline
 - 驗證集準確率：0.9472
@@ -8,21 +10,23 @@
 - 預測分佈：0=2,150, 1=56,771
 
 ## Submission 2: 參數調優後的 Random Forest
-- 修改內容：使用 GridSearchCV 進行參數調優
+- 修改內容：使用 GridSearchCV 進行參數調優，scoring 改為 F1-Score
 - 最佳參數：{'n_estimators': 200, 'max_depth': 25, 'min_samples_split': 5, 'min_samples_leaf': 1}
-- 交叉驗證分數：0.9503
+- 交叉驗證 F1-Score：0.9741
 - 驗證集準確率：0.9487
 - F1-Score：0.9733
 - AUC-ROC：0.8610
 - 預測分佈：0=1,571, 1=57,350
 
 
-## Submission 3: 類別權重調整 Random Forest
-- 修改內容：使用 class_weight='balanced' 處理類別不平衡
-- 驗證集準確率：0.9463
-- F1-Score：0.9717
-- AUC-ROC：0.8542
-- 預測分佈：0=2,815, 1=56,106
+## Submission 3: Random Forest + threshold tuning
+- 修改內容：使用 Random Forest 預測機率，並在驗證集上調整 threshold 以最大化 F1-Score
+- 模型參數：n_estimators=200, max_depth=25, min_samples_split=5, min_samples_leaf=1
+- 最佳 threshold：0.41
+- 驗證集準確率：0.9495
+- F1-Score：0.9738
+- AUC-ROC：0.8610
+- 預測分佈：0=1,088, 1=57,833
 
 ## Submission 4: 特徵工程 + 集成模型
 - 修改內容：加入特徵工程 (ID出現次數) + 集成 Random Forest、Gradient Boosting、Logistic Regression
@@ -53,17 +57,19 @@
 
 ### Submission v2 (balanced): GridSearchCV 調參 + class_weight
 - 最佳參數：{'n_estimators': 200, 'max_depth': 25, 'min_samples_split': 3, 'min_samples_leaf': 1, 'class_weight': 'balanced'}
-- 交叉驗證分數：0.9495
+- 交叉驗證 F1-Score：0.9735
 - 驗證集準確率：0.9464
 - F1-Score：0.9719
 - AUC-ROC：0.8606
 - 預測分佈：0=2,202, 1=56,719
 
-### Submission v3 (balanced): Random Forest + class_weight='balanced'
-- 驗證集準確率：0.9463
-- F1-Score：0.9717
-- AUC-ROC：0.8542
-- 預測分佈：0=2,815, 1=56,106
+### Submission v3 (balanced): Random Forest + class_weight='balanced' + threshold tuning
+- 模型參數：n_estimators=200, max_depth=25, min_samples_split=5, min_samples_leaf=1, class_weight='balanced'
+- 最佳 threshold：0.39
+- 驗證集準確率：0.9503
+- F1-Score：0.9740
+- AUC-ROC：0.8628
+- 預測分佈：0=1,735, 1=57,186
 
 ### Submission v4 (balanced): 特徵工程 + 集成模型 + class_weight
 - 驗證集準確率：0.9423

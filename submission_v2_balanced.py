@@ -2,7 +2,7 @@
 Submission v2 (class_weight='balanced' 版本)
 -----------------------------
 原始 Submission 2: GridSearchCV 調參 Random Forest
-本次修正：加上 class_weight='balanced' 處理資料不平衡
+本次修正：加上 class_weight='balanced'，並以 F1-Score 作為 GridSearchCV 搜尋目標
 """
 import pandas as pd
 from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
@@ -22,7 +22,7 @@ X_train, X_val, y_train, y_val = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
 )
 
-# 參數搜尋 (加上 class_weight)
+# 參數搜尋 
 param_grid = {
     'n_estimators': [150, 200],
     'max_depth': [15, 20, 25],
@@ -32,7 +32,7 @@ param_grid = {
 }
 rf = RandomForestClassifier(random_state=42, n_jobs=-1)
 cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
-gs = GridSearchCV(rf, param_grid, cv=cv, scoring='accuracy', n_jobs=-1, verbose=1)
+gs = GridSearchCV(rf, param_grid, cv=cv, scoring='f1', n_jobs=-1, verbose=1)
 gs.fit(X_train, y_train)
 
 print(f"最佳參數: {gs.best_params_}")
@@ -52,5 +52,5 @@ print(f"AUC-ROC: {auc:.4f}")
 print(f"預測分佈: 0={sum(best_rf.predict(X_test)==0)}, 1={sum(best_rf.predict(X_test)==1)}")
 
 # 生成預測
-submission = pd.DataFrame({'id': test_ids, 'ACTION': best_rf.predict(X_test)})
+submission = pd.DataFrame({'Id': test_ids, 'Action': best_rf.predict(X_test)})
 submission.to_csv('submission_v2_balanced.csv', index=False)

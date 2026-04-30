@@ -77,5 +77,5 @@ pred_test = (prob_ensemble_test >= 0.5).astype(int)
 
 print(f"預測分佈: 0={sum(pred_test==0)}, 1={sum(pred_test==1)}")
 
-submission = pd.DataFrame({'id': test_ids, 'ACTION': pred_test})
+submission = pd.DataFrame({'Id': test_ids, 'Action': pred_test})
 submission.to_csv('submission_v4_balanced.csv', index=False)

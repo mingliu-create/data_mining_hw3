@@ -16,7 +16,7 @@
 ---
 
 ## Submission 2：參數調優 Random Forest
-- **設計**：使用 GridSearchCV 搜尋最佳參數組合。
+- **設計**：使用 GridSearchCV 搜尋最佳參數組合，並以 F1-Score 作為 scoring。
   - n_estimators: 150, 200
   - max_depth: 15, 20, 25
   - min_samples_split: 3, 5
@@ -29,20 +29,20 @@
   - 優點：模型針對資料特性調整，提升泛化能力
   - 缺點：搜尋耗時
 - **結果**：
-  - 準確率 94.87%，AUC-ROC 0.8610（最佳）
+  - 交叉驗證 F1=0.9741，驗證集準確率 94.87%，F1=0.9733，AUC-ROC 0.8610。
 
 ---
 
-## Submission 3：類別權重調整 Random Forest
-- **設計**：設定 class_weight='balanced'，讓模型更重視少數類別（ACTION=0）。
+## Submission 3：Random Forest + threshold tuning
+- **設計**：使用 Random Forest 輸出預測機率，再於驗證集上搜尋最佳 threshold。
 - **選擇依據**：
-  - 資料極度不平衡（1:0 約 16:1），預設模型易忽略少數類別
-  - 調整權重可提升少數類別的召回率
+  - 資料極度不平衡（1:0 約 16:1），預設 threshold=0.5 不一定能取得最佳 F1-Score
+  - threshold tuning 可以在不改變模型與不加入 class_weight 的情況下調整預測分佈
 - **優缺點**：
-  - 優點：改善不平衡資料下的預測偏誤
-  - 缺點：可能降低整體準確率
+  - 優點：維持 Random Forest 架構，能直接優化 F1-Score
+  - 缺點：threshold 由驗證集決定，仍需用 Kaggle 分數確認泛化效果
 - **結果**：
-  - 準確率 94.63%，AUC-ROC 0.8542，預測為 0 的數量明顯增加
+  - 最佳 threshold=0.41，準確率 94.95%，F1=0.9738，AUC-ROC 0.8610。
 
 ---
 
@@ -83,13 +83,13 @@
 - **結果**：
   - v1 (balanced)：準確率 94.78%，F1=0.9727，AUC=0.8448
   - v2 (balanced)：準確率 94.64%，F1=0.9719，AUC=0.8606
-  - v3 (balanced)：準確率 94.63%，F1=0.9717，AUC=0.8542
+  - v3 (balanced + threshold tuning)：最佳 threshold=0.39，準確率 95.03%，F1=0.9740，AUC=0.8628
   - v4 (balanced)：準確率 94.23%，F1=0.9703，AUC=0.7785
 
 ---
 
 ## 綜合建議
-- **最佳模型**：Submission 2（參數調優 RF）
+- **最佳驗證集模型**：Submission v3 balanced（class_weight + threshold tuning）
 - **參數調整重點**：
   - n_estimators 增加提升穩定性
   - max_depth、min_samples_split/leaf 控制過擬合
