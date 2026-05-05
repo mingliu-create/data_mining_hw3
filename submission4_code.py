@@ -37,7 +37,8 @@ X_train_fe, X_test_fe = add_count_features(X_train, X_test, count_cols)
 X_val_fe, _ = add_count_features(X_val, X_test, count_cols)
 
 # Model 1: Random Forest
-rf = RandomForestClassifier(n_estimators=200, max_depth=20, min_samples_split=5, min_samples_leaf=1, random_state=42, n_jobs=-1)
+rf = RandomForestClassifier(n_estimators=200, max_depth=20, min_samples_split=5, min_samples_leaf=1, 
+                            random_state=42, n_jobs=-1)
 rf.fit(X_train_fe, y_train)
 prob_rf = rf.predict_proba(X_val_fe)[:, 1]
 

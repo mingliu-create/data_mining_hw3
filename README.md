@@ -19,6 +19,8 @@
 | `submission2_code.py` | Submission 2：Random Forest + GridSearchCV，使用 F1-Score 作為調參目標 | `submission_v2.csv` |
 | `submission3_code.py` | Submission 3：Random Forest + threshold tuning，用驗證集 F1-Score 搜尋最佳 threshold | `submission_v3.csv` |
 | `submission4_code.py` | Submission 4：加入 ID 出現次數特徵，並使用 Random Forest、Gradient Boosting、Logistic Regression 做機率平均集成 | `submission_v4.csv` |
+| `submission_best_code.py` | Random Forest 最佳候選：沿用 v2_balanced 最佳參數與 `class_weight='balanced'`，用完整訓練資料重新訓練，並同時輸出 0/1 與機率版本 | `submission_best.csv`, `submission_best_prob.csv` |
+| `submission_ohe_lr_prob.py` | 目前最高分版本：One-Hot Encoding + 兩兩交互特徵 + Logistic Regression，輸出 ACTION=1 的預測機率 | `submission_ohe_lr_prob.csv` |
 | `submission_v1_balanced.py` | Balanced v1：基礎 Random Forest + `class_weight='balanced'` | `submission_v1_balanced.csv` |
 | `submission_v2_balanced.py` | Balanced v2：Random Forest + GridSearchCV + `class_weight='balanced'`，使用 F1-Score 調參 | `submission_v2_balanced.csv` |
 | `submission_v3_balanced.py` | Balanced v3：Random Forest + `class_weight='balanced'` + threshold tuning | `submission_v3_balanced.csv` |
@@ -39,6 +41,8 @@
    python submission2_code.py
    python submission3_code.py
    python submission4_code.py
+   python submission_best_code.py
+   python submission_ohe_lr_prob.py
 
    # 類別不平衡處理版本
    python submission_v1_balanced.py
